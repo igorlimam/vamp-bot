@@ -7,7 +7,6 @@ Its main purpose is to streamline the search for quick info such as the system o
 ## Disclaimer:
 This bot is a fan-made project and is not affiliated with or endorsed by Paradox Interactive or any official publishers of *Vampire: The Masquerade*. The database file included with the bot is not distributed here due to copyright concerns. Users are encouraged to create their own content in accordance with copyright and trademark law.
 
-
 To open the **sqlite** database `vtmgo.db` use:
 ```
 sqlite3 vtmgo.db
@@ -19,64 +18,81 @@ The Entity-relationship diagram for the current bot implementation can be found 
 
 ## Slash Commands
 
-Commands regarding Disciplines, Powers, Clans and Merits are available in the form of a simple CRUD. Commands outside of reading are reserved to the guild owner.
+Each implemented entity follows the same CRUD structure, where there is a slash command for each of the operations. Commands outside of reading are reserved to the guild owner.
 
-### Discipline
+The language used in the slash commands is Brazilian Portuguese (since the original targeted users are all brazilians), feel free to fork and make one in any other language desired.
 
-`/add-disciplina`
+The following entities are implemented:
+> Clan, Discipline, Info, Merit, Power, Skill.
 
-Opens up a Modal component to register the proper information regarding the desired disicipline, such as its name, description, kind and masquerade threat.
+### Create
 
-`/disciplina [disciplina]`
+Each create command opens up a modal to write the data regarding the specifics of the entity. In the case of dependencies, such as the discipline of a power or the disciplines of a clan, a selection component will be shown **before** the modal.
 
-Reads info about the discipline, the Embed component renders the information in a nice and contained block of readable text.
+Ex:
+```
+/add-clan
+|
+"Escolha pelo menos uma disciplina para o novo clã"
+|
+~Disciplines selected~
+|
+Opens modal
+|
+"Disciplina cadastrada com sucesso"
+```
 
-`/update-disciplina [disciplina]`
+> In the case of Caitiff that don't have their own disciplines, it is advised to create a placeholder discipline for them.
 
-Updates a previously added discipline.
+### Read
 
-`/delete-disciplina [disciplina]`
+Each read command functions as an autocomplete component, since some entities may hold more than 25 (discord listing limit) entries.
 
-Deletes the chosen disicpline under confirmation of desire to do so.
+After selecting the desired entity, an embed message component will open up to show the data related to that specific entity.
 
-### Power
+Ex:
+```
+/clan Nosferatu
+|
+~Opens up embed component containing information about the clan~
+```
 
-`add-poder [disciplina]`
+> Embed components cannot exceed 6000 characters, nor a single paragraph may exceed 1024 characters.
 
-Adds a new power related to a previsouly added discipline. Deletion on discipline also deletes all of the related powers to it.
+### Update
 
-After selecting the discipline, a modal is openned to place the power's info.
+The update command opens up an autocomplete component in order to select the desired entity. After that, the same process as the create is instanciated, but with the old data placed, ready to be edited.
 
-> Some fields will be separated by '|' due to discord's limitation to eight fiels. In those cases there should be an example indicating how to fill the field.
+Ex:
+```
+/update-clan Nosferatu
+|
+"Escolha as disciplinas para o novo clã"
+|
+~Disciplines changed~
+|
+~opens up filled modal~
+|
+"Clã atualizado com sucesso"
+```
 
-`poder [disciplina] [poder]`
+> In the case of disciplines of a clan, at least one change must be made in the selection component to acknowledge the need to go further for the modal. Which means that to update a clan, one must deselect a discipline, change it, then select it again.
 
-Reads the info about the selected power from the selected discipline. Since some disciplines have more than 25 powers combined, an AutoComplete component was used to help search for the desired power. An Embed component will load the info of the selected power.
+### Delete
 
-`update-poder [disciplina] [poder]`
+Delete is made using an autocomplete component, much like Update. However, in this case, after selecting the entity, a confirmation button will appear.
 
-Updates the selected power.
+If confirmed, the entity will be deleted, along with all of its dependencies.
 
-`delete-poder [disciplina] [poder]`
+Ex:
+```
+/delete-clan Nosferatu
+|
+"Tem certeza que deseja deletar o clã **Nosferatu**"
+|                           |
+~Selects SIM~               ~Selects NÃO~
+|                           |
+"Clan deletado com sucesso" "Interação cancelada"
+```
 
-Deletes the selected power.
-
-### Info
-
-Some mechanical informations, such as how damage is calculated, what constitutes a critical roll, are often relevant to the player. For that, the `info` slash command whas made to hold information regarding several trivia for the players.
-
-`add-info`
-
-Registers a new information, containing the title, such as "Damage", a subject, such as "Gameplay", and a description fitting the info related to the title.
-
-`info [info-title]`
-
-Reads a previously added information in an autocomplete manner.
-
-`update-info [info-title]`
-
-Updates the info.
-
-`delete-info [info-title]`
-
-Deletes the info.
+> In regards to entity dependencies, their deletion will happen in cascade mode. For example, deleting a discipline remove all of its powers as well.
